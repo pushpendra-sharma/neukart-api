@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Elon Musk",
+    "password": "elon@123",
+    "email": "elon@gmail.com",
+    "mobileNumber": 9876123456,
+    "address": "House No 13, Street X, Postcode-1245, Sydney, Australia"
+  },
+  {
+    "name": "Kevin Bot",
+    "password": "kevin@123",
+    "email": "kevin@gmail.com",
+    "mobileNumber": 9899112266,
+    "address": "House No 12, Sector-18A, Pin-201301, U.P., India"
+  },
+  {
+    "name": "Sara Johnson",
+    "password": "sara@123",
+    "email": "sara@gmail.com",
+    "mobileNumber": 8694723678,
+    "address": "House No 12, Sector-18A, Pin-201301, U.P., India"
+  },
+  {
+    "name": "Mike Sam",
+    "password": "mike@123",
+    "email": "mike@gmail.com",
+    "mobileNumber": 7846943315,
+    "address": "House no. 120 Sector 8 Greater Noida U.P."
+  },
+  {
+    "name": "Hello world",
+    "password": "hello@123",
+    "email": "hello@gmail.com",
+    "mobileNumber": 9999999999,
+    "address": "Street S2, Pin-247984, Mumbai"
+  }
+]
