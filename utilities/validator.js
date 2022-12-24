@@ -95,27 +95,25 @@ exports.validateCountry = country => {
 };
 
 exports.validateExistingUserByEmail = async id => {
-  const users = await UsersModel.find({ email: id }, { _id: 0, __v: 0 });
-  if (users.length > 0) {
+  const user = await UsersModel.findOne({ email: id }, { _id: 0, __v: 0 });
+
+  if (user) {
     return true;
   }
   return false;
 };
 
 exports.validateProductId = async id => {
-  const products = await ProductsModel.find(
-    { productId: id },
-    { _id: 0, __v: 0 }
-  );
-  if (products.length > 0) {
+  const product = await ProductsModel.findById(id);
+  if (product) {
     return true;
   }
   return false;
 };
 
 exports.validateUserId = async id => {
-  const users = await UsersModel.find({ userId: id }, { _id: 0, __v: 0 });
-  if (users.length > 0) {
+  const user = await UsersModel.findById(id);
+  if (user) {
     return true;
   }
   return false;
