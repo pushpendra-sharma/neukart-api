@@ -98,7 +98,7 @@ const removeItemsFromCart = async (req, res, next) => {
       res.status(200).json({
         success: true,
         message: 'Item removed from cart successfully!',
-        items: updatedCart,
+        items: updatedCart.items,
       });
     } else {
       if (!validItem) {
