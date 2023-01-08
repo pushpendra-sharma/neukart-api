@@ -9,28 +9,19 @@ const addToWishlist = async (req, res, next) => {
 
     let errorMessage = '';
     if (validItem && validUser) {
-      const [wishlist] = await WishListModel.find(
-        { userId: userId },
-        { _id: 0, __v: 0 }
-      );
-      const myWishlist = Object.assign(
-        {},
-        {
-          userId: userId,
-          items: [productId],
-        }
-      );
+      const wishlist = await WishListModel.findOne({ userId: userId });
 
       if (wishlist) {
         if (wishlist.items.includes(productId)) {
           res.status(400).json({
+            success: false,
             message: 'Item already in wishlist',
+            items: wishlist.items,
           });
         } else {
           const updatedWishlist = await WishListModel.findOneAndUpdate(
             { userId: userId },
             {
-              userId: userId,
               $push: {
                 items: productId,
               },
@@ -40,11 +31,26 @@ const addToWishlist = async (req, res, next) => {
               runValidators: true,
             }
           );
-          res.status(201).json(updatedWishlist.items);
+
+          res.status(200).json({
+            success: true,
+            message: 'Item added to wishlist successfully!',
+            items: updatedWishlist.items,
+          });
         }
       } else {
+        const myWishlist = {
+          userId: userId,
+          items: [productId],
+        };
+
         const newWishlist = await WishListModel.create(myWishlist);
-        res.status(201).json(newWishlist.items);
+
+        res.status(200).json({
+          success: true,
+          message: 'Item added to wishlist successfully!',
+          items: newWishlist.items,
+        });
       }
     } else {
       if (!validItem) {
@@ -54,16 +60,17 @@ const addToWishlist = async (req, res, next) => {
       }
 
       res.status(400).json({
+        success: false,
         message: errorMessage,
       });
     }
   } catch (err) {
     res.status(400).json({
-      status: 'fail',
+      status: false,
       message: err.message,
     });
   }
-  next();
+  // next();
 };
 
 const removeFromWishlist = async (req, res, next) => {
@@ -75,16 +82,12 @@ const removeFromWishlist = async (req, res, next) => {
 
     let errorMessage = '';
     if (validItem && validUser) {
-      const [myWishlist] = await WishListModel.find(
-        { userId: userId },
-        { _id: 0, __v: 0 }
-      );
-
-    const updatedWishlist=  await WishListModel.findOneAndUpdate(
+      const updatedWishlist = await WishListModel.findOneAndUpdate(
         { userId: userId },
         {
-          userId: userId,
-          items: myWishlist.items.filter(item => item !== productId),
+          $pull: {
+            items: productId,
+          },
         },
         {
           new: true,
@@ -92,7 +95,11 @@ const removeFromWishlist = async (req, res, next) => {
         }
       );
 
-      res.status(201).json(updatedWishlist.items);
+      res.status(200).json({
+        success: true,
+        message: 'Item removed from wishlist successfully!',
+        items: updatedWishlist.items,
+      });
     } else {
       if (!validItem) {
         errorMessage = 'Invalid Item';
@@ -101,41 +108,43 @@ const removeFromWishlist = async (req, res, next) => {
       }
 
       res.status(400).json({
+        success: false,
         message: errorMessage,
       });
     }
   } catch (err) {
     res.status(400).json({
-      status: 'fail',
+      success: false,
       message: err.message,
     });
   }
-  next();
+  // next();
 };
 
 const getWishlistItems = async (req, res, next) => {
   const { userId } = req.params;
 
   try {
-    const [wishlistItem] = await WishListModel.find(
-      { userId: userId },
-      { _id: 0, __v: 0 }
-    );
+    const wishlist = await WishListModel.findOne({ userId: userId });
 
-    if (validateUserId(userId) && wishlistItem) {
+    if (validateUserId(userId) && wishlist && wishlist.items) {
       res.status(200);
-      res.send(wishlistItem.items);
+      res.send({ success: true, items: wishlist.items });
     } else if (!validateUserId(userId)) {
-      res.status(400).json({ message: 'Invalid User' });
+      res.status(400).json({ success: false, message: 'Invalid User' });
     } else {
-      res.status(400).json({ message: 'Could not find any items in wishlist' });
+      res.status(400).json({
+        success: false,
+        message: 'Could not find any items in wishlist',
+      });
     }
   } catch (err) {
     res.status(400).json({
-      message: err,
+      success: false,
+      message: err.message,
     });
   }
-  next();
+  // next();
 };
 
 module.exports = {
