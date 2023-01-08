@@ -125,7 +125,7 @@ const getWishlistItems = async (req, res, next) => {
   const { userId } = req.params;
 
   try {
-    const wishlist = await WishListModel.find({ userId: userId });
+    const wishlist = await WishListModel.findOne({ userId: userId });
 
     if (validateUserId(userId) && wishlist && wishlist.items) {
       res.status(200);
