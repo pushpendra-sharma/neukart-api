@@ -11,13 +11,10 @@ const errorLogger = require('./utilities/errorLogger');
 dotenv.config();
 
 mongoose
-  .connect(
-    'mongodb+srv://neukart:neukart@cluster0.3atab.mongodb.net/?retryWrites=true&w=majority',
-    {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    }
-  )
+  .connect(process.env.MONGO_DB_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log('Connected to DB '))
   .catch(err => console.log('Cannot connect to DB ', err));
 
