@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "rimraf build && npx tsc",
+    "build": "rimraf build && tsc",
     "prestart": "npm run build",
     "start": "cross-env NODE_ENV=production node build/index.js",
     "predev": "npm run build",
