@@ -8,7 +8,7 @@ function authVerify(req, res, next) {
       throw new Error('Provide a valid token');
     }
 
-    jwt.verify(token, 'secret', (err, user) => {
+    jwt.verify(token, process.env.MY_SECRET, (err, user) => {
       if (err) {
         throw new Error('Token has Expired');
       }
@@ -21,7 +21,7 @@ function authVerify(req, res, next) {
 }
 
 function createAuthToken(payload) {
-  return jwt.sign(payload, 'secret', {
+  return jwt.sign(payload, process.env.MY_SECRET, {
     expiresIn: '1d',
   });
 }

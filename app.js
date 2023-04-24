@@ -11,7 +11,7 @@ const errorLogger = require('./utilities/errorLogger');
 dotenv.config();
 
 mongoose
-  .connect(process.env.MONGO_DB_URL, {
+  .connect(process.env.DB_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
