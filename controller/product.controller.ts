@@ -1,8 +1,12 @@
-const { ProductsModel } = require('../models/product');
-const { validateProducDetails } = require('../utilities/validator');
-const { generateProductId } = require('../utilities/helper');
+import { Request, Response, NextFunction } from 'express';
+import { ProductsModel } from '../models';
+import { validateProducDetails } from '../utils';
 
-const getAllProducts = async (req, res, next) => {
+export const getAllProducts = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const products = await ProductsModel.find({});
 
@@ -15,10 +19,13 @@ const getAllProducts = async (req, res, next) => {
   } catch (err) {
     res.status(400).json({ success: false, message: err });
   }
-  // next();
 };
 
-const getProductDetails = async (req, res, next) => {
+export const getProductDetails = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { productId } = req.params;
   try {
     const product = await ProductsModel.findById(productId);
@@ -40,12 +47,15 @@ const getProductDetails = async (req, res, next) => {
       message: err,
     });
   }
-  // next();
 };
 
-const addProduct = async (req, res, next) => {
+export const addProduct = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    if (validateProducDetails(req.body)) {
+    if (await validateProducDetails(req.body)) {
       const item = Object.assign({}, req.body);
       let newItem = await ProductsModel.create(item);
 
@@ -66,11 +76,4 @@ const addProduct = async (req, res, next) => {
       message: err,
     });
   }
-  // next();
-};
-
-module.exports = {
-  getProductDetails,
-  getAllProducts,
-  addProduct,
 };

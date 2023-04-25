@@ -1,7 +1,12 @@
-const CartModel = require('../models/cart');
-const { validateProductId, validateUserId } = require('../utilities/validator');
+import { Request, Response, NextFunction } from 'express';
+import { validateProductId, validateUserId } from '../utils';
+import { WishListModel } from '../models';
 
-const addItemsToCart = async (req, res, next) => {
+export const addToWishlist = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { userId, productId } = req.params;
   try {
     const validItem = await validateProductId(productId);
@@ -9,17 +14,17 @@ const addItemsToCart = async (req, res, next) => {
 
     let errorMessage = '';
     if (validItem && validUser) {
-      const cartObj = await CartModel.findOne({ userId: userId });
+      const wishlist = await WishListModel.findOne({ userId: userId });
 
-      if (cartObj) {
-        if (cartObj.items.includes(productId)) {
+      if (wishlist) {
+        if (wishlist.items.includes(productId)) {
           res.status(400).json({
             success: false,
-            message: 'Item already in cart',
-            items: cartObj.items,
+            message: 'Item already in wishlist',
+            items: wishlist.items,
           });
         } else {
-          const updateCart = await CartModel.findOneAndUpdate(
+          const updatedWishlist = await WishListModel.findOneAndUpdate(
             { userId: userId },
             {
               $push: {
@@ -34,22 +39,22 @@ const addItemsToCart = async (req, res, next) => {
 
           res.status(200).json({
             success: true,
-            message: 'Item added to cart successfully!',
-            items: updateCart.items,
+            message: 'Item added to wishlist successfully!',
+            items: updatedWishlist?.items,
           });
         }
       } else {
-        const myCart = {
+        const myWishlist = {
           userId: userId,
           items: [productId],
         };
 
-        const newCart = await CartModel.create(myCart);
+        const newWishlist = await WishListModel.create(myWishlist);
 
         res.status(200).json({
-          message: 'Item added to cart successfully!',
           success: true,
-          items: newCart.items,
+          message: 'Item added to wishlist successfully!',
+          items: newWishlist.items,
         });
       }
     } else {
@@ -66,14 +71,17 @@ const addItemsToCart = async (req, res, next) => {
     }
   } catch (err) {
     res.status(400).json({
-      success: false,
-      message: err.message,
+      status: false,
+      message: err,
     });
   }
-  // next();
 };
 
-const removeItemsFromCart = async (req, res, next) => {
+export const removeFromWishlist = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { userId, productId } = req.params;
 
   try {
@@ -82,8 +90,8 @@ const removeItemsFromCart = async (req, res, next) => {
 
     let errorMessage = '';
     if (validItem && validUser) {
-      const updatedCart = await CartModel.findOneAndUpdate(
-        { userId },
+      const updatedWishlist = await WishListModel.findOneAndUpdate(
+        { userId: userId },
         {
           $pull: {
             items: productId,
@@ -97,8 +105,8 @@ const removeItemsFromCart = async (req, res, next) => {
 
       res.status(200).json({
         success: true,
-        message: 'Item removed from cart successfully!',
-        items: updatedCart.items,
+        message: 'Item removed from wishlist successfully!',
+        items: updatedWishlist?.items,
       });
     } else {
       if (!validItem) {
@@ -108,46 +116,43 @@ const removeItemsFromCart = async (req, res, next) => {
       }
 
       res.status(400).json({
-        message: errorMessage,
         success: false,
+        message: errorMessage,
       });
     }
   } catch (err) {
     res.status(400).json({
       success: false,
-      message: err.message,
+      message: err,
     });
   }
-  // next();
 };
 
-const getCartItemsByUserId = async (req, res, next) => {
+export const getWishlistItems = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { userId } = req.params;
 
   try {
-    const cart = await CartModel.findOne({ userId: userId });
+    const wishlist = await WishListModel.findOne({ userId: userId });
 
-    if (validateUserId(userId) && cart && cart.items) {
+    if ((await validateUserId(userId)) && wishlist && wishlist.items) {
       res.status(200);
-      res.send({ success: true, items: cart.items });
+      res.send({ success: true, items: wishlist.items });
     } else if (!validateUserId(userId)) {
-      res.status(400).json({ success: false, message: 'Invalid User!' });
+      res.status(400).json({ success: false, message: 'Invalid User' });
     } else {
-      res
-        .status(400)
-        .json({ success: false, message: 'Could not find any items in cart' });
+      res.status(400).json({
+        success: false,
+        message: 'Could not find any items in wishlist',
+      });
     }
   } catch (err) {
     res.status(400).json({
       success: false,
-      message: err.message,
+      message: err,
     });
   }
-  // next();
-};
-
-module.exports = {
-  addItemsToCart,
-  removeItemsFromCart,
-  getCartItemsByUserId,
 };

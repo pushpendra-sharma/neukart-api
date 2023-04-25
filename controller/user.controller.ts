@@ -1,17 +1,19 @@
-const UsersModel = require('../models/user');
-const CartModel = require('../models/cart');
-const WishListModel = require('../models/wishList');
-const { createAuthToken } = require('../middlewares/authMiddleware');
-
-const {
-  validateExistingUserByEmail,
-  validateUserPassword,
-  validatePhoneNo,
+import { Request, Response, NextFunction } from 'express';
+import {
+  signJwt,
   validateEmail,
+  validateExistingUserByEmail,
+  validatePhoneNo,
   validateUserName,
-} = require('../utilities/validator');
+  validateUserPassword,
+} from '../utils';
+import { CartModel, UsersModel, WishListModel } from '../models';
 
-const signup = async (req, res, next) => {
+export const signup = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { password, mobileNumber, email, name } = req.body;
 
@@ -37,7 +39,13 @@ const signup = async (req, res, next) => {
         items: [],
       });
 
-      const token = 'Bearer ' + createAuthToken(newUser._doc);
+      const token =
+        'Bearer ' +
+        signJwt(
+          { id: newUser.id, username: newUser.name },
+          process.env.MY_SECRET || '',
+          '1d'
+        );
 
       res.set('Authorization', token).status(201).json({
         success: true,
@@ -64,13 +72,16 @@ const signup = async (req, res, next) => {
   } catch (err) {
     res.status(400).json({
       success: false,
-      message: err.message,
+      message: err,
     });
   }
-  // next();
 };
 
-const login = async (req, res, next) => {
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { email, password } = req.body;
 
   try {
@@ -85,7 +96,13 @@ const login = async (req, res, next) => {
       throw new Error('Incorrect password.');
     }
     if (myUser && passwordIsCorrect) {
-      const token = 'Bearer ' + createAuthToken(myUser._doc);
+      const token =
+        'Bearer ' +
+        signJwt(
+          { id: myUser.id, username: myUser.name },
+          process.env.MY_SECRET || '',
+          '1d'
+        );
 
       res.set('Authorization', token).status(200).json({
         success: true,
@@ -99,14 +116,11 @@ const login = async (req, res, next) => {
       });
     }
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    res.status(400).json({ success: false, message: err });
   }
-  // next();
 };
 
-const logout = (req, res) => {
+export const logout = (req: Request, res: Response, next: NextFunction) => {
   res.cookie('jwt', '', { maxAge: 1 });
   res.redirect('/');
 };
-
-module.exports = { signup, login, logout };
