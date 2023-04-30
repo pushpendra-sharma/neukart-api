@@ -1,6 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import { CartModel } from '../models';
-import { validateProductId, validateUserId } from '../utils';
+import {
+  createCart,
+  findAndUpdateCart,
+  findCart,
+  validateProductId,
+  validateUserId,
+} from '../services';
 
 export const addItemsToCart = async (
   req: Request,
@@ -14,42 +19,44 @@ export const addItemsToCart = async (
 
     let errorMessage = '';
     if (validItem && validUser) {
-      const cartObj = await CartModel.findOne({ userId: userId });
+      const existingCart = await findCart({ userId });
 
-      if (cartObj) {
-        if (cartObj.items.includes(productId)) {
+      if (existingCart) {
+        const cartWithExistingItem = await findCart({
+          userId: userId,
+          items: { $in: [productId] },
+        });
+
+        if (cartWithExistingItem) {
           res.status(400).json({
             success: false,
             message: 'Item already in cart',
-            items: cartObj.items,
+            items: existingCart.items,
           });
         } else {
-          const updateCart = await CartModel.findOneAndUpdate(
+          const updatedCart = await findAndUpdateCart(
             { userId: userId },
             {
               $push: {
                 items: productId,
               },
-            },
-            {
-              new: true,
-              runValidators: true,
             }
           );
 
-          res.status(200).json({
-            success: true,
-            message: 'Item added to cart successfully!',
-            items: updateCart?.items,
-          });
+          if (updatedCart)
+            res.status(200).json({
+              success: true,
+              message: 'Item added to cart successfully!',
+              items: updatedCart.items,
+            });
         }
       } else {
-        const myCart = {
+        const cart = {
           userId: userId,
           items: [productId],
         };
 
-        const newCart = await CartModel.create(myCart);
+        const newCart = await createCart(cart);
 
         res.status(200).json({
           message: 'Item added to cart successfully!',
@@ -70,10 +77,12 @@ export const addItemsToCart = async (
       });
     }
   } catch (err) {
-    res.status(400).json({
-      success: false,
-      message: err,
-    });
+    if (err instanceof Error) {
+      res.status(400).json({
+        success: false,
+        message: err.message,
+      });
+    }
   }
 };
 
@@ -90,24 +99,21 @@ export const removeItemsFromCart = async (
 
     let errorMessage = '';
     if (validItem && validUser) {
-      const updatedCart = await CartModel.findOneAndUpdate(
+      const updatedCart = await findAndUpdateCart(
         { userId },
         {
           $pull: {
             items: productId,
           },
-        },
-        {
-          new: true,
-          runValidators: true,
         }
       );
 
-      res.status(200).json({
-        success: true,
-        message: 'Item removed from cart successfully!',
-        items: updatedCart?.items,
-      });
+      if (updatedCart)
+        res.status(200).json({
+          success: true,
+          message: 'Item removed from cart successfully!',
+          items: updatedCart.items,
+        });
     } else {
       if (!validItem) {
         errorMessage = 'Invalid Item';
@@ -121,10 +127,12 @@ export const removeItemsFromCart = async (
       });
     }
   } catch (err) {
-    res.status(400).json({
-      success: false,
-      message: err,
-    });
+    if (err instanceof Error) {
+      res.status(400).json({
+        success: false,
+        message: err.message,
+      });
+    }
   }
 };
 
@@ -136,22 +144,29 @@ export const getCartItemsByUserId = async (
   const { userId } = req.params;
 
   try {
-    const cart = await CartModel.findOne({ userId: userId });
+    const isValidUser = await validateUserId(userId);
 
-    if ((await validateUserId(userId)) && cart && cart.items) {
-      res.status(200);
-      res.send({ success: true, items: cart.items });
-    } else if (!validateUserId(userId)) {
-      res.status(400).json({ success: false, message: 'Invalid User!' });
+    if (isValidUser) {
+      const cart = await findCart({ userId: userId });
+
+      if (cart && cart.items) {
+        res.status(200);
+        res.send({ success: true, items: cart.items });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: 'Could not find any items in cart',
+        });
+      }
     } else {
-      res
-        .status(400)
-        .json({ success: false, message: 'Could not find any items in cart' });
+      res.status(400).json({ success: false, message: 'Invalid User!' });
     }
   } catch (err) {
-    res.status(400).json({
-      success: false,
-      message: err,
-    });
+    if (err instanceof Error) {
+      res.status(400).json({
+        success: false,
+        message: err.message,
+      });
+    }
   }
 };
