@@ -1,13 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
 import {
+  createCart,
+  createUser,
+  createWishlist,
+  validateExistingUserByEmail,
+  validateUserPassword,
+} from '../services';
+import {
   signJwt,
   validateEmail,
-  validateExistingUserByEmail,
+  validatePassword,
   validatePhoneNo,
   validateUserName,
-  validateUserPassword,
 } from '../utils';
-import { CartModel, UsersModel, WishListModel } from '../models';
 
 export const signup = async (
   req: Request,
@@ -17,44 +22,47 @@ export const signup = async (
   try {
     const { password, mobileNumber, email, name } = req.body;
 
-    const isExistingUser = await validateExistingUserByEmail(email);
     let erroMessage = '';
     if (
       validateUserName(name) &&
-      validateUserPassword(password) &&
+      validatePassword(password) &&
       validatePhoneNo(mobileNumber) &&
-      validateEmail(email) &&
-      !isExistingUser
+      validateEmail(email)
     ) {
-      const myUser = Object.assign({}, req.body);
-      const newUser = await UsersModel.create(myUser);
+      const isExistingUser = await validateExistingUserByEmail(email);
 
-      await CartModel.create({
-        userId: newUser._id,
-        items: [],
-      });
+      if (!isExistingUser) {
+        const newUser = await createUser(req.body);
 
-      await WishListModel.create({
-        userId: newUser._id,
-        items: [],
-      });
+        const emptyCartOrWishlist = {
+          userId: newUser._id,
+          items: [],
+        };
 
-      const token =
-        'Bearer ' +
-        signJwt(
-          { id: newUser.id, username: newUser.name },
-          process.env.MY_SECRET || '',
-          '1d'
-        );
+        await createCart(emptyCartOrWishlist);
+        await createWishlist(emptyCartOrWishlist);
 
-      res.set('Authorization', token).status(201).json({
-        success: true,
-        message: 'Signup successfull.',
-        user: newUser,
-        token,
-      });
+        const token =
+          'Bearer ' +
+          signJwt(
+            { id: newUser.id, username: newUser.name },
+            process.env.MY_SECRET || '',
+            '1d'
+          );
+
+        res.set('Authorization', token).status(201).json({
+          success: true,
+          message: 'Signup successfull.',
+          user: newUser,
+          token,
+        });
+      } else {
+        erroMessage =
+          'This user already exists. Please log in or use a different email address to create a new account.';
+        res.status(400).json({ success: false, message: erroMessage });
+      }
     } else {
-      if (!validateUserPassword(password)) {
+      if (!validatePassword(password)) {
         erroMessage =
           'Password should have minimum 5 and maximum 10 characters';
       } else if (!validatePhoneNo(mobileNumber)) {
@@ -63,17 +71,17 @@ export const signup = async (
         erroMessage = 'Email should be a valid one';
       } else if (!validateUserName(name)) {
         erroMessage = 'Name should be a valid one';
-      } else if (isExistingUser) {
-        erroMessage = 'User exists with this email id';
       }
 
       res.status(400).json({ success: false, message: erroMessage });
     }
   } catch (err) {
-    res.status(400).json({
-      success: false,
-      message: err,
-    });
+    if (err instanceof Error) {
+      res.status(400).json({
+        success: false,
+        message: err.message,
+      });
+    }
   }
 };
 
@@ -85,38 +93,45 @@ export const login = async (
   const { email, password } = req.body;
 
   try {
-    const myUser = await UsersModel.findOne({ email: email });
+    if (validatePassword(password) && validateEmail(email)) {
+      const myUser = await validateUserPassword({ email, password });
 
-    if (!myUser) {
-      throw new Error('Enter valid email.');
-    }
-
-    const passwordIsCorrect = await myUser.comparePassword(password);
-    if (!passwordIsCorrect) {
-      throw new Error('Incorrect password.');
-    }
-    if (myUser && passwordIsCorrect) {
-      const token =
-        'Bearer ' +
-        signJwt(
-          { id: myUser.id, username: myUser.name },
-          process.env.MY_SECRET || '',
-          '1d'
-        );
-
-      res.set('Authorization', token).status(200).json({
-        success: true,
-        message: 'User logged in successfully.',
-        user: myUser,
-        token,
-      });
+      if (myUser) {
+        const token =
+          'Bearer ' +
+          signJwt(
+            { id: myUser.id, username: myUser.name },
+            process.env.MY_SECRET || '',
+            '1d'
+          );
+  
+        res.set('Authorization', token).status(200).json({
+          success: true,
+          message: 'User logged in successfully.',
+          user: myUser,
+          token,
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message:
+            'Incorrect email or password. Please check your credentials and try again.',
+        });
+      }
     } else {
       res.status(400).json({
-        message: 'Incorrect user email or password',
+        success: false,
+        message:
+          'Invalid email or password. Please check your credentials and try again.',
       });
     }
   } catch (err) {
-    res.status(400).json({ success: false, message: err });
+    if (err instanceof Error) {
+      res.status(400).json({
+        success: false,
+        message: err.message,
+      });
+    }
   }
 };
 
