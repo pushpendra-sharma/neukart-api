@@ -1,6 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import { validateProductId, validateUserId } from '../utils';
-import { WishListModel } from '../models';
+import {
+  createWishlist,
+  findAndUpdateWishlist,
+  findWishlist,
+  validateProductId,
+  validateUserId,
+} from '../services';
 
 export const addToWishlist = async (
   req: Request,
@@ -14,42 +19,44 @@ export const addToWishlist = async (
 
     let errorMessage = '';
     if (validItem && validUser) {
-      const wishlist = await WishListModel.findOne({ userId: userId });
+      const existingWishlist = await findWishlist({ userId });
 
-      if (wishlist) {
-        if (wishlist.items.includes(productId)) {
+      if (existingWishlist) {
+        const wishlistWithExistingItem = await findWishlist({
+          userId: userId,
+          items: { $in: [productId] },
+        });
+
+        if (wishlistWithExistingItem) {
           res.status(400).json({
             success: false,
             message: 'Item already in wishlist',
-            items: wishlist.items,
+            items: existingWishlist.items,
           });
         } else {
-          const updatedWishlist = await WishListModel.findOneAndUpdate(
+          const updatedWishlist = await findAndUpdateWishlist(
             { userId: userId },
             {
               $push: {
                 items: productId,
               },
-            },
-            {
-              new: true,
-              runValidators: true,
             }
           );
 
-          res.status(200).json({
-            success: true,
-            message: 'Item added to wishlist successfully!',
-            items: updatedWishlist?.items,
-          });
+          if (updatedWishlist)
+            res.status(200).json({
+              success: true,
+              message: 'Item added to wishlist successfully!',
+              items: updatedWishlist.items,
+            });
         }
       } else {
-        const myWishlist = {
+        const wishlist = {
           userId: userId,
           items: [productId],
         };
 
-        const newWishlist = await WishListModel.create(myWishlist);
+        const newWishlist = await createWishlist(wishlist);
 
         res.status(200).json({
           success: true,
@@ -70,10 +77,12 @@ export const addToWishlist = async (
       });
     }
   } catch (err) {
-    res.status(400).json({
-      status: false,
-      message: err,
-    });
+    if (err instanceof Error) {
+      res.status(400).json({
+        success: false,
+        message: err.message,
+      });
+    }
   }
 };
 
@@ -90,24 +99,21 @@ export const removeFromWishlist = async (
 
     let errorMessage = '';
     if (validItem && validUser) {
-      const updatedWishlist = await WishListModel.findOneAndUpdate(
+      const updatedWishlist = await findAndUpdateWishlist(
         { userId: userId },
         {
           $pull: {
             items: productId,
           },
-        },
-        {
-          new: true,
-          runValidators: true,
         }
       );
 
-      res.status(200).json({
-        success: true,
-        message: 'Item removed from wishlist successfully!',
-        items: updatedWishlist?.items,
-      });
+      if (updatedWishlist)
+        res.status(200).json({
+          success: true,
+          message: 'Item removed from wishlist successfully!',
+          items: updatedWishlist.items,
+        });
     } else {
       if (!validItem) {
         errorMessage = 'Invalid Item';
@@ -121,10 +127,12 @@ export const removeFromWishlist = async (
       });
     }
   } catch (err) {
-    res.status(400).json({
-      success: false,
-      message: err,
-    });
+    if (err instanceof Error) {
+      res.status(400).json({
+        success: false,
+        message: err.message,
+      });
+    }
   }
 };
 
@@ -136,12 +144,12 @@ export const getWishlistItems = async (
   const { userId } = req.params;
 
   try {
-    const wishlist = await WishListModel.findOne({ userId: userId });
+    const wishlist = await findWishlist({ userId });
 
     if ((await validateUserId(userId)) && wishlist && wishlist.items) {
       res.status(200);
       res.send({ success: true, items: wishlist.items });
-    } else if (!validateUserId(userId)) {
+    } else if (!(await validateUserId(userId))) {
       res.status(400).json({ success: false, message: 'Invalid User' });
     } else {
       res.status(400).json({
@@ -150,9 +158,11 @@ export const getWishlistItems = async (
       });
     }
   } catch (err) {
-    res.status(400).json({
-      success: false,
-      message: err,
-    });
+    if (err instanceof Error) {
+      res.status(400).json({
+        success: false,
+        message: err.message,
+      });
+    }
   }
 };
