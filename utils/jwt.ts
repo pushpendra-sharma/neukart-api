@@ -22,7 +22,9 @@ export function verifyJwt(token: string, secret: string) {
     const decoded = jwt.verify(token, secret);
     return decoded;
   } catch (err) {
-    logger.error('Invalid token', err);
+    if (err instanceof Error) {
+      logger.error('Invalid token', err.message);
+    }
     return null;
   }
 }

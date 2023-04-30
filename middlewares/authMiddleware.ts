@@ -14,12 +14,14 @@ export const authVerify = async (
       logger.error('Provide a valid token');
       throw new Error('Provide a valid token');
     }
-    const result =  verifyJwt(token, process.env.MY_SECRET || '');
+    const result = verifyJwt(token, process.env.MY_SECRET || '');
 
     res.locals.user = result;
     return next();
   } catch (err) {
-    logger.error('Provide a valid token');
-    return next();
+    if (err instanceof Error) {
+      logger.error('Provide a valid token', err.message);
+      return next();
+    }
   }
 };
