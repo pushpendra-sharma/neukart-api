@@ -11,17 +11,18 @@ export const authVerify = async (
     const token = (authHeader && authHeader.split(' ')[1]) || '';
 
     if (!token) {
-      logger.error('Provide a valid token');
-      throw new Error('Provide a valid token');
+      throw new Error('Provide a token');
     }
     const result = verifyJwt(token, process.env.MY_SECRET || '');
-
+    if (!result) {
+      throw new Error('Provide a valid token');
+    }
     res.locals.user = result;
     return next();
   } catch (err) {
     if (err instanceof Error) {
-      logger.error('Provide a valid token', err.message);
-      return next();
+      logger.error(err.message);
+      res.status(400).json({ success: false, message: err.message });
     }
   }
 };
