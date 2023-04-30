@@ -1,9 +1,9 @@
-import express, { Express, Response, Request, Application } from 'express';
+import express from 'express';
 import {
   addItemsToCart,
   getCartItemsByUserId,
   removeItemsFromCart,
-} from '../controller';
+} from '../controllers';
 
 export const cartRouter = express.Router();
 
