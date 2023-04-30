@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 // Define interface for Mongoose document
-export interface IProduct extends Document {
+export interface IProduct {
   productId: string;
   productName: string;
   description: string;
@@ -17,8 +17,7 @@ export interface IProduct extends Document {
   imageUrl: string;
 }
 
-
-export interface ProductDocument extends IProduct {
+export interface ProductDocument extends IProduct, Document {
   createdAt: Date;
   updatedAt: Date;
 }
@@ -44,4 +43,7 @@ const productSchema = new Schema(
   }
 );
 
-export const ProductsModel = mongoose.model<ProductDocument>('product', productSchema);
+export const ProductsModel = mongoose.model<ProductDocument>(
+  'product',
+  productSchema
+);

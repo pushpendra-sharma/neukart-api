@@ -1,11 +1,13 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import { UserDocument } from './user.model';
+import { ProductDocument } from './product.model';
 
-export interface IWishlist extends Document {
-  userId: string;
-  items: string[];
+export interface IWishlist {
+  userId: UserDocument['_id'];
+  items: Array<ProductDocument['_id']>;
 }
 
-export interface WishlistDocument extends IWishlist{
+export interface WishlistDocument extends IWishlist, Document {
   createdAt: Date;
   updatedAt: Date;
 }
