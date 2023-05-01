@@ -14,8 +14,10 @@ export const addItemsToCart = async (
 ) => {
   const { userId, productId } = req.params;
   try {
-    const validItem = await validateProductId(productId);
-    const validUser = await validateUserId(userId);
+    const [validItem, validUser] = await Promise.all([
+      validateProductId(productId),
+      validateUserId(userId),
+    ]);
 
     let errorMessage = '';
     if (validItem && validUser) {
@@ -94,8 +96,10 @@ export const removeItemsFromCart = async (
   const { userId, productId } = req.params;
 
   try {
-    const validItem = await validateProductId(productId);
-    const validUser = await validateUserId(userId);
+    const [validItem, validUser] = await Promise.all([
+      validateProductId(productId),
+      validateUserId(userId),
+    ]);
 
     let errorMessage = '';
     if (validItem && validUser) {

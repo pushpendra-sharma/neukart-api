@@ -39,8 +39,10 @@ export const signup = async (
           items: [],
         };
 
-        await createCart(emptyCartOrWishlist);
-        await createWishlist(emptyCartOrWishlist);
+        await Promise.all([
+          createCart(emptyCartOrWishlist),
+          createWishlist(emptyCartOrWishlist),
+        ]);
 
         const token =
           'Bearer ' +
@@ -104,7 +106,7 @@ export const login = async (
             process.env.MY_SECRET || '',
             '1d'
           );
-  
+
         res.set('Authorization', token).status(200).json({
           success: true,
           message: 'User logged in successfully.',

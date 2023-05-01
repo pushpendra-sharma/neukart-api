@@ -14,8 +14,10 @@ export const addToWishlist = async (
 ) => {
   const { userId, productId } = req.params;
   try {
-    const validItem = await validateProductId(productId);
-    const validUser = await validateUserId(userId);
+    const [validItem, validUser] = await Promise.all([
+      validateProductId(productId),
+      validateUserId(userId),
+    ]);
 
     let errorMessage = '';
     if (validItem && validUser) {
@@ -94,8 +96,10 @@ export const removeFromWishlist = async (
   const { userId, productId } = req.params;
 
   try {
-    const validItem = await validateProductId(productId);
-    const validUser = await validateUserId(userId);
+    const [validItem, validUser] = await Promise.all([
+      validateProductId(productId),
+      validateUserId(userId),
+    ]);
 
     let errorMessage = '';
     if (validItem && validUser) {
@@ -144,18 +148,22 @@ export const getWishlistItems = async (
   const { userId } = req.params;
 
   try {
-    const wishlist = await findWishlist({ userId });
+    const isValidUser = await validateUserId(userId);
 
-    if ((await validateUserId(userId)) && wishlist && wishlist.items) {
-      res.status(200);
-      res.send({ success: true, items: wishlist.items });
-    } else if (!(await validateUserId(userId))) {
-      res.status(400).json({ success: false, message: 'Invalid User' });
+    if (isValidUser) {
+      const wishlist = await findWishlist({ userId });
+
+      if (wishlist && wishlist.items) {
+        res.status(200);
+        res.send({ success: true, items: wishlist.items });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: 'Could not find any items in wishlist',
+        });
+      }
     } else {
-      res.status(400).json({
-        success: false,
-        message: 'Could not find any items in wishlist',
-      });
+      res.status(400).json({ success: false, message: 'Invalid User!' });
     }
   } catch (err) {
     if (err instanceof Error) {

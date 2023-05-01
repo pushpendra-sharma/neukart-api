@@ -62,7 +62,8 @@ export const addProduct = async (
   next: NextFunction
 ) => {
   try {
-    if (await validateProductDetails(req.body)) {
+    const isValidProductDetails = await validateProductDetails(req.body);
+    if (isValidProductDetails) {
       const item = Object.assign({}, req.body);
       const newItem = await createProduct({ ...item });
 
