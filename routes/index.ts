@@ -4,11 +4,13 @@ import { userRouter } from './users';
 import { productRouter } from './product';
 import { cartRouter } from './cart';
 import { wishlistRouter } from './wishlist';
+import { searchRouter } from './search';
 
 export const router = express.Router();
 
 router.use('/users', userRouter);
 router.use('/products', productRouter);
+router.use('/search', searchRouter);
 router.use('/cart', authVerify, cartRouter);
 router.use('/wishlist', authVerify, wishlistRouter);
 
