@@ -1,5 +1,5 @@
-import { IProduct, ProductsModel, UsersModel } from "../models";
-import { logger } from "./logger";
+import { IProduct } from '../models';
+import { logger } from './logger';
 
 export const validateUserName = (name: string) => {
   if (name.trim().length >= 3 && name.trim().length <= 50) {
@@ -8,7 +8,7 @@ export const validateUserName = (name: string) => {
   return false;
 };
 
-export const validateUserPassword = (pwd: string) => {
+export const validatePassword = (pwd: string) => {
   if (pwd.length >= 5 && pwd.length <= 10) {
     return true;
   }
@@ -31,7 +31,9 @@ export const calculateAge = (dob: Date) => {
     }
     return age;
   } catch (err) {
-    logger.error(err);
+    if (err instanceof Error) {
+      logger.error(err.message);
+    }
     return 0;
   }
 };
@@ -94,34 +96,9 @@ export const validateCountry = (country: string) => {
   return false;
 };
 
-export const validateExistingUserByEmail = async (id: string) => {
-  const user = await UsersModel.findOne({ email: id }, { _id: 0, __v: 0 });
-
-  if (user) {
-    return true;
-  }
-  return false;
-};
-
-export const validateProductId = async (id: string) => {
-  const product = await ProductsModel.findById(id);
-  if (product) {
-    return true;
-  }
-  return false;
-};
-
-export const validateUserId = async (id: string) => {
-  const user = await UsersModel.findById(id);
-  if (user) {
-    return true;
-  }
-  return false;
-};
-
-export const validateProducDetails = async (details:IProduct) => {
-  const { productName, description, category, company, price } = details;
-  if (productName && description && category && company && price) {
+export const validateProductDetails = async (details: IProduct) => {
+  const { productName, description, category, company, mrp } = details;
+  if (productName && description && category && company && mrp) {
     return true;
   }
   return false;

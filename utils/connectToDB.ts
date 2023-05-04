@@ -8,7 +8,9 @@ export async function connectToDB() {
     await mongoose.connect(dbUri);
     logger.info('Connected to DB...');
   } catch (error) {
-    logger.error('Connection to DB Failed!', error);
+    if (error instanceof Error) {
+      logger.error('Connection to DB Failed!', error.message);
+    }
     process.exit(1);
   }
 }

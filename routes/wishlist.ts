@@ -1,5 +1,9 @@
-import express, { Express, Response, Request, Application } from 'express';
-import { addToWishlist, getWishlistItems, removeFromWishlist } from '../controller';
+import express from 'express';
+import {
+  addToWishlist,
+  getWishlistItems,
+  removeFromWishlist,
+} from '../controllers';
 
 export const wishlistRouter = express.Router();
 

@@ -3,17 +3,17 @@ import bcrypt from 'bcrypt';
 import validator from 'validator';
 
 // Define interface for Mongoose document
-export interface IUser extends Document {
+export interface IUser {
   name: string;
   email: string;
   password: string;
-  gender: string
+  gender: string;
   dateOfBirth: Date;
   mobileNumber: string;
   address: string;
 }
 
-export interface UserDocument extends IUser {
+export interface UserDocument extends IUser, Document {
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<Boolean>;

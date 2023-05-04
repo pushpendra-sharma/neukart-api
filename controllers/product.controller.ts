@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { ProductsModel } from '../models';
-import { validateProducDetails } from '../utils';
+import { createProduct, findAllProducts, findProduct } from '../services';
+import { validateProductDetails } from '../utils';
 
 export const getAllProducts = async (
   req: Request,
@@ -8,16 +8,21 @@ export const getAllProducts = async (
   next: NextFunction
 ) => {
   try {
-    const products = await ProductsModel.find({});
+    const products = await findAllProducts();
 
-    if (products.length > 0) {
+    if (products && products.length > 0) {
       res.status(200).json({ success: true, items: products });
     } else
       res
         .status(400)
         .json({ success: false, message: 'No products available.' });
   } catch (err) {
-    res.status(400).json({ success: false, message: err });
+    if (err instanceof Error) {
+      res.status(400).json({
+        success: false,
+        message: err.message,
+      });
+    }
   }
 };
 
@@ -28,7 +33,7 @@ export const getProductDetails = async (
 ) => {
   const { productId } = req.params;
   try {
-    const product = await ProductsModel.findById(productId);
+    const product = await findProduct({ _id: productId });
 
     if (product) {
       res.status(200).json({
@@ -42,10 +47,12 @@ export const getProductDetails = async (
       });
     }
   } catch (err) {
-    res.status(400).json({
-      status: false,
-      message: err,
-    });
+    if (err instanceof Error) {
+      res.status(400).json({
+        success: false,
+        message: err.message,
+      });
+    }
   }
 };
 
@@ -55,9 +62,10 @@ export const addProduct = async (
   next: NextFunction
 ) => {
   try {
-    if (await validateProducDetails(req.body)) {
+    const isValidProductDetails = await validateProductDetails(req.body);
+    if (isValidProductDetails) {
       const item = Object.assign({}, req.body);
-      let newItem = await ProductsModel.create(item);
+      const newItem = await createProduct({ ...item });
 
       res.status(201).json({
         success: true,
@@ -71,9 +79,11 @@ export const addProduct = async (
       });
     }
   } catch (err) {
-    res.status(400).json({
-      success: false,
-      message: err,
-    });
+    if (err instanceof Error) {
+      res.status(400).json({
+        success: false,
+        message: err.message,
+      });
+    }
   }
 };
