@@ -3,11 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "rimraf ./build && tsc",
+    "build": "rimraf ./api && tsc",
     "prestart": "npm run build",
-    "start": "cross-env NODE_ENV=development node ./build/index.js",
+    "start": "cross-env NODE_ENV=development node ./api/index.js",
     "predev": "npm run build",
-    "dev": "cross-env NODE_ENV=development concurrently \"tsc --watch\" \"nodemon -q ./build/index.js\""
+    "dev": "cross-env NODE_ENV=development concurrently \"tsc --watch\" \"nodemon -q ./api/index.js\""
   },
   "engines": {
     "node": "18.x"
