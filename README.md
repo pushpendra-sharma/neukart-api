@@ -4,7 +4,7 @@ NeuKart-API is a basic e-commerce backend service for [NeuKart](https://github.c
 
 ## Tech Stack
 
-**Server:** Node, Express, Mongoose
+**Server:** Node, Express, TypeScript, Mongoose
 
 ## API Reference
 
