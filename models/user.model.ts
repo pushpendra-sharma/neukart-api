@@ -50,10 +50,10 @@ const userSchema: Schema = new Schema(
 
 // Hashing password on save
 userSchema.pre('save', async function (next) {
-  let user = this;
+  const user = this as unknown as UserDocument;
 
   const salt = await bcrypt.genSalt(10);
-  const hash = await bcrypt.hashSync(user.password, salt);
+  const hash = bcrypt.hashSync(user.password, salt);
 
   user.password = hash;
   next();
