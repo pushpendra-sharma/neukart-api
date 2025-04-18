@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { createProduct, findAllProducts, findProduct } from '../services';
 import { validateProductDetails } from '../utils';
 

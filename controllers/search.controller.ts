@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
-import { ParsedQs } from 'qs';
+import express, { Request, Response, NextFunction } from 'express';
+import qs, { ParsedQs } from 'qs';
 import { findProductsBySearch } from '../services';
 
 interface ISearchQuery extends ParsedQs {
@@ -25,6 +25,7 @@ export const getSearchResults = async (
       ],
     });
 
+    //
     const suggestions = products.map(item => ({
       id: item._id,
       name: item.productName,
