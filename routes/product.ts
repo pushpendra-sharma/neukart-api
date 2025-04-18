@@ -5,4 +5,3 @@ export const productRouter = express.Router();
 
 productRouter.post('/addProduct', addProduct);
 productRouter.get('/', getAllProducts);
-productRouter.get('/:productId', getProductDetails);

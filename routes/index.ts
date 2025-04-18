@@ -14,7 +14,7 @@ router.use('/search', searchRouter);
 router.use('/cart', authVerify, cartRouter);
 router.use('/wishlist', authVerify, wishlistRouter);
 
-router.all('*', (req: Request, res: Response, next: NextFunction) => {
-  res.status(200);
-  res.send({ success: true, title: 'NeuKart application' });
-});
+// router.all('*', (req: Request, res: Response, next: NextFunction) => {
+//   res.status(200);
+//   res.send({ success: true, title: 'NeuKart application' });
+// });

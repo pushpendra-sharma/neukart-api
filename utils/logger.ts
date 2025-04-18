@@ -8,5 +8,5 @@ export const logger = pino({
       colorize: true,
     },
   },
-  timestamp: () => `,"time":"${dayjs().format()}"`,
+  timestamp: () => `,"time  ${dayjs().format()}"`,
 });

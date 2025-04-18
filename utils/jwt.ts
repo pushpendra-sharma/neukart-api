@@ -1,25 +1,23 @@
-import * as jwt from 'jsonwebtoken';
+import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken';
 import { logger } from './logger';
 
-interface Payload {
+interface Payload extends JwtPayload {
   id: string;
   username: string;
 }
 
-export function signJwt(
-  payload: Payload,
-  secret: string,
-  expiresIn: string
-): string {
-  const options = {
-    expiresIn,
+export function signJwt(payload: Payload, secret: string): string {
+  const options: SignOptions = {
+    expiresIn: '1d',
   };
+
+  // jwt.sign overload with payload as object
   return jwt.sign(payload, secret, options);
 }
 
-export function verifyJwt(token: string, secret: string) {
+export function verifyJwt(token: string, secret: string): Payload | null {
   try {
-    const decoded = jwt.verify(token, secret);
+    const decoded = jwt.verify(token, secret) as Payload;
     return decoded;
   } catch (err) {
     if (err instanceof Error) {

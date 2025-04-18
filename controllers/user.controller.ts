@@ -48,8 +48,7 @@ export const signup = async (
           'Bearer ' +
           signJwt(
             { id: newUser.id, username: newUser.name },
-            process.env.MY_SECRET || '',
-            '1d'
+            process.env.MY_SECRET || ''
           );
 
         res.set('Authorization', token).status(201).json({
@@ -103,8 +102,7 @@ export const login = async (
           'Bearer ' +
           signJwt(
             { id: myUser.id, username: myUser.name },
-            process.env.MY_SECRET || '',
-            '1d'
+            process.env.MY_SECRET || ''
           );
 
         res.set('Authorization', token).status(200).json({
