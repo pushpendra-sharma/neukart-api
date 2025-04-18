@@ -18,6 +18,20 @@ app.use(cookieParser());
 
 app.use(cors());
 
+// ✅ Logger middleware
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const start = Date.now();
+  logger.info(`➡️ METHOD: ${req.method} URL: ${req.originalUrl}`);
+
+  // Hook into response `finish` event
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    logger.info(`⬅️  Status [${res.statusCode}] - ${duration}ms`);
+  });
+
+  next();
+});
+
 // Main router
 app.use('/', router);
 
